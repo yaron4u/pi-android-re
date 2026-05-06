@@ -93,6 +93,7 @@ Run `apk-check-deps` after install to see what's missing. Use `apk-install-dep <
 ## Credits
 
 - Static analysis scripts adapted from [SimoneAvogadro/android-reverse-engineering-skill](https://github.com/SimoneAvogadro/android-reverse-engineering-skill) (Apache 2.0)
+- Static analysis scripts adapted from [rsenet/FriList](https://github.com/rsenet/FriList) (GPLv3)
 - Dynamic analysis standards based on production Frida workflows
 
 ## License

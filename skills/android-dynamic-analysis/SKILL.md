@@ -9,6 +9,33 @@ Write and inject Frida scripts for runtime hooking, bypass, and instrumentation 
 
 ---
 
+# REQUIRED REFERENCE LOADING
+
+Before creating, modifying, reviewing, or recommending Frida scripts, read the relevant files under `references/`. Do not rely only on memory or random uploaded script variants.
+
+## Reference Files
+
+| File | Read When |
+|---|---|
+| `references/script-catalog.md` | Choosing which uploaded script or variant to start from |
+| `references/workflow-from-static-to-dynamic.md` | Mapping jadx/static findings into dynamic Frida hooks |
+| `references/observer-scripts.md` | Writing monitoring scripts for crypto, network, storage, classes, logs, deep links, or runtime behavior |
+| `references/bypass-scripts.md` | Writing bypass scripts for SSL pinning, root/emulator/debug checks, biometric, WebView, location, WiFi, or app termination |
+| `references/frida-script-best-practices.md` | Hardening old scripts, converting variants, enforcing strict Frida style |
+| `references/troubleshooting.md` | Debugging hooks that do not fire, crashes, wrong overloads, class-loader issues, or noisy output |
+
+## Mandatory Workflow
+
+1. Read `references/script-catalog.md` first when selecting from uploaded scripts.
+2. Read `references/workflow-from-static-to-dynamic.md` when static-analysis evidence exists or the user mentions jadx/APK findings.
+3. Read either `references/observer-scripts.md` or `references/bypass-scripts.md` based on the task.
+4. Read `references/frida-script-best-practices.md` before writing final script code.
+5. Read `references/troubleshooting.md` when fixing failed hooks, crashes, class-loader problems, or runtime errors.
+
+The uploaded scripts are reference material, not production quality by default. Extract hook targets and behavior from them, then rewrite using the standards in this skill and the reference files.
+
+---
+
 # FRIDA VERSION COMPATIBILITY
 
 Target **Frida 16.x** by default. If the user specifies Frida 17+, apply these breaking changes:

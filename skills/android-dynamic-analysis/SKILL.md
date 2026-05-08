@@ -17,7 +17,9 @@ Before creating, modifying, reviewing, or recommending Frida scripts, read the r
 
 | File | Read When |
 |---|---|
-| `references/script-catalog.md` | Choosing which uploaded script or variant to start from |
+| `references/canonical-scripts.md` | Selecting canonical script IDs before touching variants |
+| `references/script-metadata.manifest.json` | Deterministic routing: intent/static-evidence -> preferred/fallback script IDs |
+| `references/script-catalog.md` | Understanding folder model and legacy variant landscape |
 | `references/workflow-from-static-to-dynamic.md` | Mapping jadx/static findings into dynamic Frida hooks |
 | `references/observer-scripts.md` | Writing monitoring scripts for crypto, network, storage, classes, logs, deep links, or runtime behavior |
 | `references/bypass-scripts.md` | Writing bypass scripts for SSL pinning, root/emulator/debug checks, biometric, WebView, location, WiFi, or app termination |
@@ -26,11 +28,13 @@ Before creating, modifying, reviewing, or recommending Frida scripts, read the r
 
 ## Mandatory Workflow
 
-1. Read `references/script-catalog.md` first when selecting from uploaded scripts.
-2. Read `references/workflow-from-static-to-dynamic.md` when static-analysis evidence exists or the user mentions jadx/APK findings.
-3. Read either `references/observer-scripts.md` or `references/bypass-scripts.md` based on the task.
-4. Read `references/frida-script-best-practices.md` before writing final script code.
-5. Read `references/troubleshooting.md` when fixing failed hooks, crashes, class-loader problems, or runtime errors.
+1. Read `references/canonical-scripts.md` first.
+2. Read `references/script-metadata.manifest.json` and apply routing rules (`preferred` then `fallback`).
+3. Read `references/script-catalog.md` only if canonical/fallback scripts miss required targets.
+4. Read `references/workflow-from-static-to-dynamic.md` when static-analysis evidence exists or the user mentions jadx/APK findings.
+5. Read either `references/observer-scripts.md` or `references/bypass-scripts.md` based on the task.
+6. Read `references/frida-script-best-practices.md` before writing final script code.
+7. Read `references/troubleshooting.md` when fixing failed hooks, crashes, class-loader problems, or runtime errors.
 
 The uploaded scripts are reference material, not production quality by default. Extract hook targets and behavior from them, then rewrite using the standards in this skill and the reference files.
 

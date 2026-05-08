@@ -14,23 +14,25 @@ From jadx/static references collect:
 - Storage APIs: SharedPreferences, EncryptedSharedPreferences, SQLite, SQLCipher, files
 - Dynamic loading: DexClassLoader, PathClassLoader, native `System.loadLibrary`
 
-## 2. Map Static Evidence to Frida Scripts
+## 2. Map Static Evidence to Canonical IDs
 
-| Static Evidence | Dynamic Script Family |
-|---|---|
-| `okhttp3.OkHttpClient`, interceptors | OkHttp logger/proxy installer |
-| `okhttp3.CertificatePinner` | OkHttp pinning bypass |
-| `javax.net.ssl.SSLContext.init` | TrustManager pinning bypass |
-| `com.android.org.conscrypt.TrustManagerImpl` | Multiple pinning bypass |
-| `libflutter.so` | Flutter pinning bypass |
-| `com.scottyab.rootbeer.RootBeer` | RootBeer bypass |
-| `Runtime.exec`, `ProcessBuilder`, `getprop`, `which su` | Multiple root bypass, then narrow it |
-| `System.exit` after a security check | System exit bypass |
-| `Cipher.getInstance`, `doFinal`, `Mac`, `MessageDigest` | Crypto observer variants |
-| `EncryptedSharedPreferences` | Encrypted SharedPreferences observer |
-| `SQLiteDatabase`, `SQLiteOpenHelper` | SQLite observer |
-| `net.sqlcipher.database.SQLiteDatabase` | SQLCipher observer/password grabber |
-| `WebView.setWebContentsDebuggingEnabled` | WebView debug enable script |
+Use `script-metadata.manifest.json` routing rules first. Then map evidence to canonical IDs:
+
+| Static Evidence | Preferred Canonical ID | Fallback |
+|---|---|---|
+| `okhttp3.OkHttpClient`, interceptors | `observer.network.okhttp.logger` | `observer.network.okhttp.proxy` |
+| `okhttp3.CertificatePinner` | `bypass.ssl.okhttp` | `bypass.ssl.multi`, `bypass.ssl.trustmanager` |
+| `javax.net.ssl.SSLContext.init` | `bypass.ssl.trustmanager` | `bypass.ssl.multi` |
+| `com.android.org.conscrypt.TrustManagerImpl` | `bypass.ssl.multi` | `bypass.ssl.trustmanager` |
+| `libflutter.so` | `bypass.ssl.flutter` | `bypass.ssl.multi` |
+| `com.scottyab.rootbeer.RootBeer` | `bypass.root.rootbeer` | `bypass.root.multi`, `bypass.exit.system` |
+| `Runtime.exec`, `ProcessBuilder`, `getprop`, `which su` | `bypass.root.multi` | `bypass.exit.system` |
+| `System.exit` after a security check | `bypass.exit.system` | `bypass.root.multi` |
+| `Cipher.getInstance`, `doFinal`, `Mac`, `MessageDigest` | `observer.crypto.core` | `observer.crypto.java` |
+| `EncryptedSharedPreferences` | `observer.storage.sharedprefs.encrypted` | `observer.storage.sharedprefs` |
+| `SQLiteDatabase`, `SQLiteOpenHelper` | `observer.storage.sqlite` | `observer.storage.filesystem` |
+| `net.sqlcipher.database.SQLiteDatabase` | `observer.storage.sqlcipher.password` | `observer.storage.sqlite` |
+| `WebView.setWebContentsDebuggingEnabled` | `bypass.webview.debug` | `bypass.ui.flagsecure` |
 
 ## 3. Choose Spawn vs Attach
 

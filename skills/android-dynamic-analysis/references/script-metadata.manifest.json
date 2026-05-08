@@ -1,0 +1,2169 @@
+{
+  "schemaVersion": "1.0.0",
+  "skill": "android-dynamic-analysis",
+  "generatedAt": "2026-05-08",
+  "notes": [
+    "canonical=true marks preferred baseline scripts for routing and adaptation.",
+    "legacy.* IDs are non-canonical references; extract targets then rewrite to SKILL.md standards.",
+    "platform should be filtered to android for this skill unless explicitly requested otherwise."
+  ],
+  "routingRules": [
+    {
+      "id": "route.ssl.okhttp",
+      "intents": [
+        "ssl pinning",
+        "certificate pinning",
+        "okhttp pinner"
+      ],
+      "staticEvidence": [
+        "okhttp3.CertificatePinner",
+        "check$okhttp"
+      ],
+      "preferred": "bypass.ssl.okhttp",
+      "fallback": [
+        "bypass.ssl.multi",
+        "bypass.ssl.trustmanager"
+      ]
+    },
+    {
+      "id": "route.ssl.conscrypt",
+      "intents": [
+        "ssl pinning",
+        "trustmanagerimpl",
+        "conscrypt"
+      ],
+      "staticEvidence": [
+        "com.android.org.conscrypt.TrustManagerImpl",
+        "SSLContext.init"
+      ],
+      "preferred": "bypass.ssl.multi",
+      "fallback": [
+        "bypass.ssl.trustmanager"
+      ]
+    },
+    {
+      "id": "route.ssl.flutter",
+      "intents": [
+        "flutter ssl pinning",
+        "dart tls"
+      ],
+      "staticEvidence": [
+        "libflutter.so"
+      ],
+      "preferred": "bypass.ssl.flutter",
+      "fallback": [
+        "bypass.ssl.multi"
+      ]
+    },
+    {
+      "id": "route.root.rootbeer",
+      "intents": [
+        "root detection",
+        "rootbeer"
+      ],
+      "staticEvidence": [
+        "com.scottyab.rootbeer.RootBeer"
+      ],
+      "preferred": "bypass.root.rootbeer",
+      "fallback": [
+        "bypass.root.multi",
+        "bypass.exit.system"
+      ]
+    },
+    {
+      "id": "route.root.generic",
+      "intents": [
+        "root detection bypass",
+        "su detection",
+        "magisk detection"
+      ],
+      "staticEvidence": [
+        "Runtime.exec",
+        "ProcessBuilder",
+        "ro.build.tags"
+      ],
+      "preferred": "bypass.root.multi",
+      "fallback": [
+        "bypass.exit.system"
+      ]
+    },
+    {
+      "id": "route.debug.emulator",
+      "intents": [
+        "emulator detection bypass",
+        "debug bypass",
+        "adb detection"
+      ],
+      "staticEvidence": [
+        "Build.FINGERPRINT",
+        "ro.kernel.qemu",
+        "android.os.Debug"
+      ],
+      "preferred": "bypass.emulator",
+      "fallback": [
+        "bypass.debug",
+        "bypass.adb"
+      ]
+    },
+    {
+      "id": "route.observer.okhttp",
+      "intents": [
+        "observe http",
+        "trace request response",
+        "okhttp logger"
+      ],
+      "staticEvidence": [
+        "okhttp3.OkHttpClient"
+      ],
+      "preferred": "observer.network.okhttp.logger",
+      "fallback": [
+        "observer.network.okhttp.proxy"
+      ]
+    },
+    {
+      "id": "route.observer.crypto",
+      "intents": [
+        "observe crypto",
+        "aes key iv",
+        "cipher dofinal"
+      ],
+      "staticEvidence": [
+        "javax.crypto.Cipher",
+        "java.security.MessageDigest",
+        "javax.crypto.Mac"
+      ],
+      "preferred": "observer.crypto.core",
+      "fallback": [
+        "observer.crypto.java"
+      ]
+    },
+    {
+      "id": "route.observer.storage",
+      "intents": [
+        "sharedpreferences monitor",
+        "sqlite monitor",
+        "sqlcipher password"
+      ],
+      "staticEvidence": [
+        "SharedPreferences",
+        "EncryptedSharedPreferences",
+        "net.sqlcipher.database.SQLiteDatabase"
+      ],
+      "preferred": "observer.storage.sharedprefs",
+      "fallback": [
+        "observer.storage.sharedprefs.encrypted",
+        "observer.storage.sqlite",
+        "observer.storage.sqlcipher.password"
+      ]
+    },
+    {
+      "id": "route.runtime.enum",
+      "intents": [
+        "enumerate classes",
+        "find methods at runtime",
+        "class not found frida"
+      ],
+      "staticEvidence": [
+        "DexClassLoader",
+        "obfuscation heavy"
+      ],
+      "preferred": "runtimeenum.classes",
+      "fallback": [
+        "runtimeenum.classes.methods",
+        "runtimeenum.specific.class.methods",
+        "runtimeenum.dex.classes"
+      ]
+    }
+  ],
+  "scripts": [
+    {
+      "id": "observer.crypto.core",
+      "path": "scripts/01_Observer/Crypto/android-crypto-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "observer.crypto.java",
+      "path": "scripts/01_Observer/Crypto/android-java-crypto-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.deeplink",
+      "path": "scripts/01_Observer/DeepLink_UrlScheme/android-deeplink-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "DeepLink_UrlScheme",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.library",
+      "path": "scripts/01_Observer/Library/android-library-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Library",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.network.okhttp.logger",
+      "path": "scripts/01_Observer/Network/OkHttp/android-okhttp-logger.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Network",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.network.okhttp.proxy",
+      "path": "scripts/01_Observer/Network/OkHttp/android-okhttp-proxy-installator.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Network",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.network.tcp.trace",
+      "path": "scripts/01_Observer/Network/TCP/android-tcp-trace.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.storage.filesystem",
+      "path": "scripts/01_Observer/Storage/FileSystem/android-filesystem-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.keystore",
+      "path": "scripts/01_Observer/Storage/Keystore_keychain/android-keystore-monitor.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.storage.sqlite",
+      "path": "scripts/01_Observer/Storage/SQLite/android-sqlite-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "observer.storage.sqlcipher.password",
+      "path": "scripts/01_Observer/Storage/SQLite/android-sqlitecipher-password-grabber.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.storage.sharedprefs.encrypted",
+      "path": "scripts/01_Observer/Storage/SharedPreferences/android-encryptedsharedpreferences-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "observer.storage.sharedprefs",
+      "path": "scripts/01_Observer/Storage/SharedPreferences/android-sharedpreferences-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "observer.permissions",
+      "path": "scripts/01_Observer/android-permissions-observer.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "observer",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "bypass.biometric",
+      "path": "scripts/02_SecurityBypass/Biometric/android-biometric-bypass-android11.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "Biometric",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.ssl.multi",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android-multiple-pinning-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.ssl.okhttp",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android-okhttp-pinning-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.ssl.trustmanager",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android-trustmanager-pinning-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.adb",
+      "path": "scripts/02_SecurityBypass/DebugMode_Emulator/android-adb-detection-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "DebugMode_Emulator",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.debug",
+      "path": "scripts/02_SecurityBypass/DebugMode_Emulator/android-debug-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "DebugMode_Emulator",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.emulator",
+      "path": "scripts/02_SecurityBypass/DebugMode_Emulator/android-emulator-detection-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "DebugMode_Emulator",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.ui.flagsecure",
+      "path": "scripts/02_SecurityBypass/FlagSecure/android-flagsecure.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "FlagSecure",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.location",
+      "path": "scripts/02_SecurityBypass/Location/android-location-spoofing.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "Location",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.root.multi",
+      "path": "scripts/02_SecurityBypass/RootDetection/android-multiple-root-bypass2.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.root.rootbeer",
+      "path": "scripts/02_SecurityBypass/RootDetection/android-rootbeer-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.webview.debug",
+      "path": "scripts/02_SecurityBypass/WebView/android-enable-webview-debug.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "WebView",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.wifi",
+      "path": "scripts/02_SecurityBypass/WiFi/android-wifi-check-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "WiFi",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.antifrida",
+      "path": "scripts/02_SecurityBypass/android-anti-frida-exposed-detection-bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.exit.system",
+      "path": "scripts/02_SecurityBypass/android-system_exit_bypass.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "bypass",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "runtimeenum.dex.classes",
+      "path": "scripts/03_StaticAnalysis/android-dex_classes_enumeration.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "runtimeenum.classes.methods",
+      "path": "scripts/03_StaticAnalysis/android-find-all-classes-methods.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "runtimeenum.classes",
+      "path": "scripts/03_StaticAnalysis/android-find-all-classes.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "runtimeenum.specific.class.methods",
+      "path": "scripts/03_StaticAnalysis/android-find-specific-classes-methods.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "runtimeenum.app.env",
+      "path": "scripts/03_StaticAnalysis/android-get-app-env-info.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "utility.file.delete.prevent",
+      "path": "scripts/04_Other/android-file-delete-prevention.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "utility",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "utility.injector",
+      "path": "scripts/04_Other/android-injector.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "utility",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "utility.stetho.loader",
+      "path": "scripts/04_Other/android-stetho-loader.js",
+      "canonical": true,
+      "platform": "android",
+      "family": "utility",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "bypass.ssl.flutter",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/flutter-pinning-bypass.js",
+      "canonical": true,
+      "platform": "mixed",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "specific.applock.auth.bypass",
+      "path": "scripts/05_SpecificSoftware/AppLock-authentication-bypass.js",
+      "canonical": true,
+      "platform": "unknown",
+      "family": "specific",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.android.aes.decrypt.no.iv",
+      "path": "scripts/01_Observer/Crypto/android-aes-decrypt-no-iv.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.android.aesinfo.and.hashing.decryptor",
+      "path": "scripts/01_Observer/Crypto/android-aesinfo-and-hashing-decryptor.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.android.aesinfo.decryptor",
+      "path": "scripts/01_Observer/Crypto/android-aesinfo-decryptor.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.android.hashing.observer",
+      "path": "scripts/01_Observer/Crypto/android-hashing-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.android.pbe.observer",
+      "path": "scripts/01_Observer/Crypto/android-pbe-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.android.random.observer",
+      "path": "scripts/01_Observer/Crypto/android-random-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.01.observer.deeplink.urlscheme.android.deeplink.observer2",
+      "path": "scripts/01_Observer/DeepLink_UrlScheme/android-deeplink-observer2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "DeepLink_UrlScheme",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.library.android.library.observer2",
+      "path": "scripts/01_Observer/Library/android-library-observer2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Library",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.bluetooth.android.bluetooth.meta.data.observer",
+      "path": "scripts/01_Observer/Network/Bluetooth/android-bluetooth-meta-data-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Network",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.bluetooth.android.ios.bluetooth.observer",
+      "path": "scripts/01_Observer/Network/Bluetooth/android-ios-bluetooth-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.okhttp.android.okhttp.logger2",
+      "path": "scripts/01_Observer/Network/OkHttp/android-okhttp-logger2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.cookies.android.cookie.observer",
+      "path": "scripts/01_Observer/Storage/Cookies/android-cookie-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.filesystem.android.filesystem.observer2",
+      "path": "scripts/01_Observer/Storage/FileSystem/android-filesystem-observer2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.log.android.log.observer",
+      "path": "scripts/01_Observer/Storage/Log/android-log-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.sqlite.android.sqlitecipher.observer",
+      "path": "scripts/01_Observer/Storage/SQLite/android-sqlitecipher-observer.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.sqlite.android.sqlitecipher.password.grabber2",
+      "path": "scripts/01_Observer/Storage/SQLite/android-sqlitecipher-password-grabber2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.android.strings.compare",
+      "path": "scripts/01_Observer/android-strings_compare.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "observer",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.android.multiple.pinning.bypass2",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android-multiple-pinning-bypass2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.android.multiple.pinning.bypass3",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android-multiple-pinning-bypass3.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.android.okhttp.pinning.bypass2",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android-okhttp-pinning-bypass2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.android.trustmanager.pinning.bypass2",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android-trustmanager-pinning-bypass2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.android.multiple.root.bypass",
+      "path": "scripts/02_SecurityBypass/RootDetection/android-multiple-root-bypass.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.android.rootbeer.flutter.bypass",
+      "path": "scripts/02_SecurityBypass/RootDetection/android-rootbeer--flutter-bypass.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.android.rootbeer.flutter.bypass2",
+      "path": "scripts/02_SecurityBypass/RootDetection/android-rootbeer--flutter-bypass2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.xamarin.android.multiple.root.bypass",
+      "path": "scripts/02_SecurityBypass/RootDetection/xamarin-android-multiple-root-bypass.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.android.sdk.version.change",
+      "path": "scripts/02_SecurityBypass/android-sdk-version-change.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "bypass",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.android.find.all.classes.methods2",
+      "path": "scripts/03_StaticAnalysis/android-find-all-classes-methods2.js",
+      "canonical": false,
+      "platform": "android",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.ios.intercept.crypto",
+      "path": "scripts/01_Observer/Crypto/ios-intercept-crypto.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.crypto.ios.intercept.crypto2",
+      "path": "scripts/01_Observer/Crypto/ios-intercept-crypto2.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Crypto",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.deeplink.urlscheme.ios.url.scheme.dumper",
+      "path": "scripts/01_Observer/DeepLink_UrlScheme/ios-url-scheme-dumper.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "DeepLink_UrlScheme",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.deeplink.urlscheme.ios.url.scheme.fuzzing",
+      "path": "scripts/01_Observer/DeepLink_UrlScheme/ios-url-scheme-fuzzing.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "DeepLink_UrlScheme",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.nsurl.ios.nsurlrequest.observer",
+      "path": "scripts/01_Observer/Network/NSURL/ios-nsurlrequest-observer.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.nsurl.ios.nsurlsession.observer",
+      "path": "scripts/01_Observer/Network/NSURL/ios-nsurlsession-observer.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.tls.ios.tls.keylogger.ios12",
+      "path": "scripts/01_Observer/Network/TLS/ios-tls-keylogger-ios12.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.tls.ios.tls.keylogger.ios13",
+      "path": "scripts/01_Observer/Network/TLS/ios-tls-keylogger-ios13.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.tls.ios.tls.keylogger.ios14",
+      "path": "scripts/01_Observer/Network/TLS/ios-tls-keylogger-ios14.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.webinspector.ios.webinspector.enable",
+      "path": "scripts/01_Observer/Network/WebInspector/ios-webinspector-enable.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.network.webview.ios.webview.observer",
+      "path": "scripts/01_Observer/Network/Webview/ios-webview-observer.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Network",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.cookies.ios.binarycookies.observer",
+      "path": "scripts/01_Observer/Storage/Cookies/ios-binarycookies-observer.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.keyboardcache.ios.keyboard.cache.checker",
+      "path": "scripts/01_Observer/Storage/KeyboardCache/ios-keyboard-cache-checker.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.keystore.keychain.ios.keychain.monitor",
+      "path": "scripts/01_Observer/Storage/Keystore_keychain/ios-keychain-monitor.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.log.ios.nslog.observer",
+      "path": "scripts/01_Observer/Storage/Log/ios-nslog-observer.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": false,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.pasteboard.ios.pasteboard.observer",
+      "path": "scripts/01_Observer/Storage/Pasteboard/ios-pasteboard-observer.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.plist.ios.read.nsuserdefaults",
+      "path": "scripts/01_Observer/Storage/Plist/ios-read-nsuserdefaults.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.plist.ios.read.plist.file",
+      "path": "scripts/01_Observer/Storage/Plist/ios-read-plist-file.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.01.observer.storage.sqlite.ios.sqlite3.observer",
+      "path": "scripts/01_Observer/Storage/SQLite/ios-sqlite3-observer.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "observer",
+      "category": "Storage",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.biometric.ios.biometric.bypass",
+      "path": "scripts/02_SecurityBypass/Biometric/ios-biometric-bypass.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "Biometric",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.biometric.ios.touchid.bypass",
+      "path": "scripts/02_SecurityBypass/Biometric/ios-touchid-bypass.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "Biometric",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.ios.pinning.bypass.10",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/ios-pinning-bypass-10.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.ios.pinning.bypass.11",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/ios-pinning-bypass-11.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.ios.pinning.bypass.12",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/ios-pinning-bypass-12.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.ios.pinning.bypass.13",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/ios-pinning-bypass-13.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.ios.trustkit.pinning.bypass",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/ios-trustkit-pinning-bypass.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.location.ios.location.spoofing",
+      "path": "scripts/02_SecurityBypass/Location/ios-location-spoofing.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "Location",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.ios.multiple.jailbreak.bypass",
+      "path": "scripts/02_SecurityBypass/RootDetection/ios-multiple-jailbreak-bypass.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.ios.multiple.jailbreak.bypass2",
+      "path": "scripts/02_SecurityBypass/RootDetection/ios-multiple-jailbreak-bypass2.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.ios.simple.jailbreak.bypass",
+      "path": "scripts/02_SecurityBypass/RootDetection/ios-simple-jailbreak-bypass.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.rootdetection.xamarin.multiple.jailbreak.bypass",
+      "path": "scripts/02_SecurityBypass/RootDetection/xamarin-multiple-jailbreak-bypass.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "RootDetection",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.ios.change.system.version",
+      "path": "scripts/02_SecurityBypass/ios-change-system-version.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.ios.custom.keyboard.allowed",
+      "path": "scripts/02_SecurityBypass/ios-custom-keyboard-allowed.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "bypass",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.app.by.display.name",
+      "path": "scripts/03_StaticAnalysis/ios-app-by-display-name.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": true,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.application.static.analysis",
+      "path": "scripts/03_StaticAnalysis/ios-application-static-analysis.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.application.static.analysis2",
+      "path": "scripts/03_StaticAnalysis/ios-application-static-analysis2.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.data.protection.display",
+      "path": "scripts/03_StaticAnalysis/ios-data-protection-display.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.find.all.classes.methods",
+      "path": "scripts/03_StaticAnalysis/ios-find-all-classes-methods.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.find.all.classes",
+      "path": "scripts/03_StaticAnalysis/ios-find-all-classes.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.find.all.methods.of.specific.class",
+      "path": "scripts/03_StaticAnalysis/ios-find-all-methods-of-specific-class.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.find.app.classes.methods",
+      "path": "scripts/03_StaticAnalysis/ios-find-app-classes-methods.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.find.app.classes",
+      "path": "scripts/03_StaticAnalysis/ios-find-app-classes.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": true,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.find.specific.method",
+      "path": "scripts/03_StaticAnalysis/ios-find-specific-method.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "spawn-or-attach",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": true
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.get.app.env.info",
+      "path": "scripts/03_StaticAnalysis/ios-get_app_env_info.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.03.staticanalysis.ios.search.class",
+      "path": "scripts/03_StaticAnalysis/ios-search_class.js",
+      "canonical": false,
+      "platform": "ios",
+      "family": "runtime-enum",
+      "category": "General",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.flutter.pinning.bypass2",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/flutter-pinning-bypass2.js",
+      "canonical": false,
+      "platform": "mixed",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": true,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.flutter.tls1.verification.bypass",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/flutter-tls1-verification-bypass.js",
+      "canonical": false,
+      "platform": "mixed",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "spawn-preferred",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": true,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.phonegap.pinning.bypass",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/phonegap-pinning-bypass.js",
+      "canonical": false,
+      "platform": "mixed",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.webview.cordova.enable.webview.debugging",
+      "path": "scripts/02_SecurityBypass/WebView/cordova-enable-webview-debugging.js",
+      "canonical": false,
+      "platform": "mixed",
+      "family": "bypass",
+      "category": "WebView",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.certificatepinning.android.proxy.add",
+      "path": "scripts/02_SecurityBypass/CertificatePinning/android_proxy-add.js",
+      "canonical": false,
+      "platform": "unknown",
+      "family": "bypass",
+      "category": "CertificatePinning",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    },
+    {
+      "id": "legacy.02.securitybypass.debugmode.emulator.react.native.emulator.detection.bypass",
+      "path": "scripts/02_SecurityBypass/DebugMode_Emulator/react-native-emulator-detection-bypass.js",
+      "canonical": false,
+      "platform": "unknown",
+      "family": "bypass",
+      "category": "DebugMode_Emulator",
+      "startup": "attach-or-spawn",
+      "qualityHints": {
+        "hasUseStrict": false,
+        "usesVar": true,
+        "usesLegacyMemoryStatic": false,
+        "usesModuleFindExportByName": false,
+        "usesSetTimeout": false,
+        "usesSetImmediate": false
+      }
+    }
+  ]
+}

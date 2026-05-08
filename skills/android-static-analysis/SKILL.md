@@ -21,6 +21,31 @@ If anything is missing, see `references/setup-guide.md` in this skill directory.
 
 ---
 
+# REQUIRED REFERENCE LOADING
+
+Before selecting commands, load the static canonical routing references. Do not guess flags or randomly switch engines.
+
+## Reference Files
+
+| File | Read When |
+|---|---|
+| `references/canonical-scripts.md` | Selecting canonical script/profile IDs before execution |
+| `references/script-metadata.manifest.json` | Deterministic routing: intent/file-type -> preferred/fallback profile IDs |
+| `references/setup-guide.md` | Installing or repairing missing dependencies |
+| `references/jadx-usage.md` | Jadx flags, deobf strategy, and APK workflows |
+| `references/fernflower-usage.md` | Fernflower/Vineflower behavior and dex2jar flow |
+| `references/api-extraction-patterns.md` | Retrofit/OkHttp/Volley/WebView endpoint extraction patterns |
+| `references/call-flow-analysis.md` | UI->ViewModel/Presenter->Repository->Network tracing |
+
+## Mandatory Pre-Routing Workflow
+
+1. Read `references/canonical-scripts.md` first.
+2. Read `references/script-metadata.manifest.json` and select the `preferred` canonical profile.
+3. Use fallback profiles only if the preferred path fails or misses target output.
+4. Then execute the 5-phase workflow below.
+
+---
+
 # THE 5-PHASE REVERSE ENGINEERING WORKFLOW
 
 You are equipped with global CLI tools (`apk-*`). Execute this exact 5-phase workflow when handed an Android application. **Do not deviate.**
@@ -199,6 +224,8 @@ At the end of the workflow, deliver:
 
 ## References
 
+- `references/canonical-scripts.md` -- Canonical script IDs and profile presets
+- `references/script-metadata.manifest.json` -- Deterministic routing metadata (preferred/fallback IDs)
 - `references/setup-guide.md` -- Installing Java, jadx, Fernflower/Vineflower, dex2jar
 - `references/jadx-usage.md` -- jadx CLI options and workflows
 - `references/fernflower-usage.md` -- Fernflower/Vineflower CLI options, APK workflow

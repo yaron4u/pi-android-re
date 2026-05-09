@@ -1,0 +1,30 @@
+{
+  "name": "Profile-A-Research-Lab",
+  "tone": "formal-precise",
+  "sentence_length": "medium",
+  "jargon_density": "medium-high",
+  "section_order": [
+    "summary",
+    "scope",
+    "background",
+    "architecture",
+    "root_cause",
+    "evidence",
+    "impact",
+    "mitigation",
+    "timeline",
+    "references"
+  ],
+  "figure_style": {
+    "caption_mode": "argumentative",
+    "palette": "muted",
+    "line_width": 1.8,
+    "font_scale": 1.0
+  },
+  "severity_language": "constrained",
+  "forbidden_phrases": [
+    "full pwn",
+    "works everywhere",
+    "unstoppable"
+  ]
+}

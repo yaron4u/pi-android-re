@@ -1,0 +1,26 @@
+{
+  "name": "Profile-B-Practitioner-Readable",
+  "tone": "direct-teacherly",
+  "sentence_length": "short-medium",
+  "jargon_density": "medium",
+  "section_order": [
+    "summary",
+    "why_it_matters",
+    "system_model",
+    "root_cause",
+    "proof",
+    "impact_limits",
+    "fixes"
+  ],
+  "figure_style": {
+    "caption_mode": "what-to-notice",
+    "palette": "high-contrast",
+    "line_width": 2.0,
+    "font_scale": 1.05
+  },
+  "severity_language": "explicit-boundary-based",
+  "required_phrases": [
+    "on tested builds",
+    "under these assumptions"
+  ]
+}

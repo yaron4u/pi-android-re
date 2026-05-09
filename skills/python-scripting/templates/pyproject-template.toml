@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "your-package"
+version = "0.1.0"
+description = "High-quality Python scripting project"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Your Name" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "black>=25.0.0",
+  "isort>=5.13.0",
+  "mypy>=1.15.0",
+  "pre-commit>=4.0.0",
+  "pytest>=8.3.0",
+  "pytest-cov>=6.0.0",
+  "ruff>=0.11.0",
+]
+
+[project.scripts]
+your-cli = "your_package.cli:main"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "C4", "SIM", "RUF"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+no_implicit_optional = true
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers --strict-config --cov=src --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
